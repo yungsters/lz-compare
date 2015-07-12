@@ -1,0 +1,23 @@
+{
+  "name": "lz-compare",
+  "description": "Simple rig to compare compression algorithms.",
+  "version": "0.1.0",
+  "author": "Timothy Yung",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yungsters/lz-compare"
+  },
+  "bugs": {
+    "url": "https://github.com/yungsters/lz-compare/issues"
+  },
+  "homepage": "https://github.com/yungsters/lz-compare",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "glob": "^5.0.13",
+    "lz-string": "^1.4.4",
+    "lz4": "^0.4.2",
+    "promise": "^7.0.3"
+  },
+  "devDependencies": {}
+}

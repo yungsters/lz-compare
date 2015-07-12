@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+
+var CONFIGS = [
+  {
+    name: 'LZ4',
+    module: require('lz4'),
+    encode: function(module, data) {
+      return module.encode(data);
+    }
+  },
+  {
+    name: 'LZString',
+    module: require('lz-string'),
+    encode: function(module, data) {
+      return module.compress(data);
+    }
+  }
+];
+
+// ---
+
+require('colors');
+var Promise = require('promise');
+var fs = require('fs');
+
+var glob = Promise.denodeify(require('glob'));
+var read = Promise.denodeify(fs.readFile);
+
+Promise.all(process.argv.slice(2).map(function(pattern) {
+  return glob(pattern);
+})).done(function(results) {
+  var filenames = Array.prototype.concat.apply([], results);
+  return Promise.all(filenames.map(function(filename) {
+    return read(filename, 'utf8').then(function(data) {
+      var originalSize = data.length;
+      var namePadding = 8;
+
+      var results = CONFIGS.map(function(config) {
+        var start = Date.now();
+        namePadding = Math.max(namePadding, config.name.length);
+        return {
+          name: config.name,
+          size: config.encode(config.module, data).length,
+          time: Date.now() - start
+        };
+      });
+
+      var tiniest;
+      var fastest;
+      if (results.length > 1) {
+        var sortedBySize = sortBy(results, 'size');
+        var sortedByTime = sortBy(results, 'time');
+        tiniest = sortedBySize[0];
+        fastest = sortedByTime[0];
+      }
+
+      // var tiniest = lz4.data.length < lzs.data.length ? 'lz4' : 'lzs';
+      // var fastest = lz4.time < lzs.time ? 'lz4' : 'lzs';
+      console.log(
+        'File: %s\n'.yellow +
+        '%sOriginal: %s'.gray,
+        filename,
+        new Array(namePadding - 8 + 1).join(' '),
+        inKB(originalSize)
+      );
+      results.forEach(function(result) {
+        var sizeColor = tiniest === result ? 'green' : 'white';
+        var timeColor = fastest === result ? 'green' : 'white';
+
+        console.log(
+          '%s%s: %s (%s) in %s',
+          new Array(namePadding - result.name.length + 1).join(' '),
+          result.name,
+          inKB(result.size)[sizeColor],
+          inPercent(result.size / originalSize)[sizeColor],
+          inMS(result.time)[timeColor]
+        );
+      });
+      console.log('');
+    });
+  }));
+});
+
+function benchmark(callback) {
+  var start = Date.now();
+  return {
+    data: callback(),
+    time: Date.now() - start
+  }
+}
+
+function inKB(byteCount) {
+  return (byteCount / 1000).toFixed(2) + ' KB';
+}
+
+function inMS(time) {
+  return time + 'ms';
+}
+
+function inPercent(ratio) {
+  return (ratio * 100).toFixed(2) + '%';
+}
+
+function sortBy(array, key) {
+  return array.sort(function(a, b) {
+    return a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : 0;
+  });
+}
