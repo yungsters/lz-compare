@@ -5,7 +5,7 @@ var CONFIGS = [
     name: 'LZ4',
     module: require('lz4'),
     encode: function(module, data) {
-      return module.encode(data);
+      return module.encode(data, {useJS: true});
     }
   },
   {
