@@ -1,18 +1,43 @@
 #!/usr/bin/env node
 
+function fromURIEncodedString(string) {
+  var data = {};
+  string.split('&').forEach(function(pair) {
+    var keyValue = pair.split('=');
+    data[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1]);
+  });
+  return data;
+}
+
 var CONFIGS = [
   {
-    name: 'LZ4',
+    name: 'LZ4 (URI)',
     module: require('lz4'),
     encode: function(module, data) {
       return module.encode(data, {useJS: true});
     }
   },
   {
-    name: 'LZString',
+    name: 'LZ4 (JSON)',
+    module: require('lz4'),
+    encode: function(module, data) {
+      var jsonData = JSON.stringify(fromURIEncodedString(data));
+      return module.encode(jsonData, {useJS: true});
+    }
+  },
+  {
+    name: 'LZString (URI)',
     module: require('lz-string'),
     encode: function(module, data) {
-      return module.compress(data);
+      return module.compressToEncodedURIComponent(data);
+    }
+  },
+  {
+    name: 'LZString (JSON)',
+    module: require('lz-string'),
+    encode: function(module, data) {
+      var jsonData = JSON.stringify(fromURIEncodedString(data));
+      return module.compress(jsonData);
     }
   }
 ];
