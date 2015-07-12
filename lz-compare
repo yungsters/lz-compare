@@ -54,8 +54,6 @@ Promise.all(process.argv.slice(2).map(function(pattern) {
         fastest = sortedByTime[0];
       }
 
-      // var tiniest = lz4.data.length < lzs.data.length ? 'lz4' : 'lzs';
-      // var fastest = lz4.time < lzs.time ? 'lz4' : 'lzs';
       console.log(
         'File: %s\n'.yellow +
         '%sOriginal: %s'.gray,
